@@ -1,27 +1,36 @@
 import { dbService } from "fbase";
 import React, { useState, useEffect} from "react";
 
-const Home = () => {
+const Home = ({userObject}) => {
+    
     const [nweet, setNweet] = useState("");
     const [nweets, setNweets] = useState([]);
-    const getNweets = async() => {
-        const dbNweet = await dbService.collection("nweets").get()
-        dbNweet.forEach((document) => {
-            const nweetObject = {
-                ...document.data(),
-                id: document.id,
-            };
-            setNweets((prev) => [nweetObject, ...prev]);
-        });
-    }
+    // const getNweets = async() => {
+    //     const dbNweet = await dbService.collection("nweets").get()
+    //     dbNweet.forEach((document) => {
+    //         const nweetObject = {
+    //             ...document.data(),
+    //             id: document.id
+    //         };
+    //         setNweets((prev) => [nweetObject, ...prev]);
+    //     });
+    // }
     useEffect(() => {
-        getNweets();
+        // getNweets(); // change get Nweets
+        dbService.collection("nweets").onSnapshot((snapshot) => {
+              const nweetArray = snapshot.docs.map((doc) => (
+                {id:doc.id, 
+                ...doc.data(),}
+              ));
+              setNweets(nweetArray);
+        });
     }, []);
         const onSubmit = async (event) => {
             event.preventDefault();
             await dbService.collection("nweets").add({
-                nweet,
+                text: nweet,
                 createAt: Date.now(),
+                creatorId : userObject.uid, 
             });
             setNweet("");
         };
@@ -31,7 +40,6 @@ const Home = () => {
             } = event;
             setNweet(value);
         }
-    console.log(nweets);
     return (
         <div>
             <form onSubmit={onSubmit}>
@@ -41,7 +49,7 @@ const Home = () => {
             <div>
                 {nweets.map(nweet => 
                     <div key={nweet.id}>
-                    <h4>{nweet.nweet}</h4>
+                    <h4>{nweet.text}</h4>
                     </div>)}
             </div>
         </div>
