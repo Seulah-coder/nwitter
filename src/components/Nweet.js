@@ -1,6 +1,8 @@
 import React from "react";
 import {dbService, storageService} from "fbase";
 import { useState } from "react";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faTrash, faPencilAlt } from "@fortawesome/free-solid-svg-icons";
 
 const Nweet = ({nweetObject, isOwner}) => {
 
@@ -11,7 +13,10 @@ const Nweet = ({nweetObject, isOwner}) => {
         const ok = window.confirm("are you sure? you want to delete this nweet?");
         if(ok){
            await dbService.doc(`nweets/${nweetObject.id}`).delete();
-           await storageService.refFromURL(nweetObject.attachmentUrl).delete();
+           if(nweetObject.attachmentUrl){
+            await storageService.refFromURL(nweetObject.attachmentUrl).delete();
+           }
+           
         }
     };
     const toggleEditing = () =>{
@@ -33,24 +38,32 @@ const Nweet = ({nweetObject, isOwner}) => {
     }
     return (
 
-        <div>
+        <div className="nweet">
             
             { editing ? (
                 <>
-                <form onSubmit={onSubmit}>
-                    <input type="text" placeholder="Edit your nweet" defaultValue={newNweet} required onChange={onChange}/>
-                    <input type="submit" value="Update Nweet"/>
+                <form onSubmit={onSubmit} className="container nweetEdit">
+                    <input type="text" placeholder="Edit your nweet" defaultValue={newNweet} required autoFocus onChange={onChange} className="formInput"/>
+                    <input type="submit" value="Update Nweet" className="formBtn" />
                 </form> 
-                <button onClick={toggleEditing}>Cancel</button>
+                <span onClick={toggleEditing} className="formBtn cancelBtn">
+                    Cancel
+                </span>
                 </>
                 ): (<>
                 <h4>{nweetObject.text}</h4>
-                {nweetObject.attachmentUrl && <img src={nweetObject.attachmentUrl} width="50px" height="50px"/>}
+                {nweetObject.attachmentUrl && <img src={nweetObject.attachmentUrl} />}
 
                 {isOwner && 
                     (   <> 
-                            <button onClick={onDeleteClick}>Delete Nweet</button>
-                            <button onClick={toggleEditing}>Edit Nweet</button> 
+                            <div class="nweet__actions">
+                            <span onClick={onDeleteClick}>
+                                <FontAwesomeIcon icon={faTrash} />
+                            </span>
+                            <span onClick={toggleEditing}>
+                                <FontAwesomeIcon icon={faPencilAlt} />
+                            </span>
+                            </div>
                         </>
                 )}
                 </>
